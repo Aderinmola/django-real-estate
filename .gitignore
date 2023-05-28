@@ -1,0 +1,11 @@
+.vscode
+.idea
+.coverage*
+.DS_Store
+staticfiles
+mediafiles
+client/nodemodules
+db.sqlite3
+__pycache__/
+venv/
+.env
