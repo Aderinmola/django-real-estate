@@ -9,7 +9,6 @@ class CustomUserCreationForm(UserCreationForm):
         error_class = "error"
 
 
-
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User

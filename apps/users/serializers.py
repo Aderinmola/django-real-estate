@@ -28,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
             'full_name',
             'gender',
             'phone_number',
+            'profile_photo',
             'country',
             'city',
             'top_seller'

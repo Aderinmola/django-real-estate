@@ -43,7 +43,7 @@ class CustomUserManager(BaseUserManager):
         return user
     
     def create_superuser(
-            self, 
+            self,
             username, 
             first_name,  
             last_name, 
