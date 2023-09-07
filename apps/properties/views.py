@@ -11,10 +11,13 @@ from .exceptions import PropertyNotFound
 from .models import Property, PropertyViews
 from .pagination import PropertyPagination
 from .serializers import (
-    PropertyCreateSerializer, PropertySerializer, PropertyViewSerializer
+    PropertyCreateSerializer,
+    PropertySerializer,
+    PropertyViewSerializer,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class PropertyFilter(django_filters.FilterSet):
 
@@ -25,20 +28,22 @@ class PropertyFilter(django_filters.FilterSet):
         field_name="property_type", lookup_expr="iexact"
     )
     price = django_filters.NumberFilter()
-    price__gt=django_filters.NumberFilter(field_name="price", lookup_expr="gt")
-    price__lt=django_filters.NumberFilter(field_name="price", lookup_expr="lt")
+    price__gt = django_filters.NumberFilter(field_name="price", lookup_expr="gt")
+    price__lt = django_filters.NumberFilter(field_name="price", lookup_expr="lt")
 
     class Meta:
-        model=Property
-        fields=["advert_type", "property_type", "price"]
+        model = Property
+        fields = ["advert_type", "property_type", "price"]
 
 
 class ListAllPropertiesAPIView(generics.ListAPIView):
-    serializer_class=PropertySerializer
-    queryset=Property.objects.all().order_by("-created_at")
-    pagination_class=PropertyPagination
-    filter_backends=[
-        DjangoFilterBackend,filters.SearchFilter, filters.OrderingFilter
+    serializer_class = PropertySerializer
+    queryset = Property.objects.all().order_by("-created_at")
+    pagination_class = PropertyPagination
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
     ]
 
     filterset_class = PropertyFilter
@@ -46,11 +51,13 @@ class ListAllPropertiesAPIView(generics.ListAPIView):
     ordering_fields = ["created_at"]
 
 
-class ListAgentsPropertyAPIView(generics.ListAPIView):
-    serializer_class=PropertySerializer
-    pagination_class=PropertyPagination
-    filter_backends=[
-        DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,
+class ListAgentsPropertiesAPIView(generics.ListAPIView):
+    serializer_class = PropertySerializer
+    pagination_class = PropertyPagination
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
     ]
 
     filterset_class = PropertyFilter
@@ -61,11 +68,11 @@ class ListAgentsPropertyAPIView(generics.ListAPIView):
         user = self.request.user
         queryset = Property.objects.filter(user=user).order_by("-created_at")
         return queryset
-    
+
 
 class PropertyViewsAPIView(generics.ListAPIView):
     serializer_class = PropertyViewSerializer
-    queryset=PropertyViews.objects.all()
+    queryset = PropertyViews.objects.all()
 
 
 class PropertyDetailView(APIView):
@@ -74,9 +81,9 @@ class PropertyDetailView(APIView):
 
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip=x_forwarded_for.split(",")[0]
+            ip = x_forwarded_for.split(",")[0]
         else:
-            ip=request.META.get("REMOTE_ADDR")
+            ip = request.META.get("REMOTE_ADDR")
 
         if not PropertyViews.objects.filter(property=property, ip=ip).exists():
             PropertyViews.objects.create(property=property, ip=ip)
@@ -84,9 +91,9 @@ class PropertyDetailView(APIView):
             property.views += 1
             property.save()
 
-        serializer=PropertySerializer(property, context={"request": request})
+        serializer = PropertySerializer(property, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 
 @api_view(["PUT"])
 @permission_classes([permissions.IsAuthenticated])
@@ -95,27 +102,28 @@ def update_property_api_view(request, slug):
         property = Property.objects.get(slug=slug)
     except Property.DoesNotExist:
         raise PropertyNotFound
-    
-    user=request.user
+
+    user = request.user
     if property.user != user:
         return Response(
-            {"error":"You can't update or edit a property that doesn't belong to you"},
+            {"error": "You can't update or edit a property that doesn't belong to you"},
             status=status.HTTP_403_FORBIDDEN,
         )
     if request.method == "PUT":
-        data=request.data
-        serializer=PropertySerializer(property, data, many=False)
+        data = request.data
+        serializer = PropertySerializer(property, data, many=False)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    
+
+
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def create_property_api_view(request):
-    user=request.user
-    data=request.data
-    data["user"]=request.user.pkid
-    serializer=PropertyCreateSerializer(data=data)
+    user = request.user
+    data = request.data
+    data["user"] = request.user.pkid
+    serializer = PropertyCreateSerializer(data=data)
 
     if serializer.is_valid():
         serializer.save()
@@ -130,10 +138,10 @@ def create_property_api_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def delete_property_api_view(request, slug):
     try:
-        property=Property.objects.get(slug=slug)
+        property = Property.objects.get(slug=slug)
     except Property.DoesNotExist:
         raise PropertyNotFound
-    
+
     user = request.user
     if property.user != user:
         return Response(
@@ -143,46 +151,46 @@ def delete_property_api_view(request, slug):
 
     if request.method == "DELETE":
         delete_operation = property.delete()
-        data={}
+        data = {}
         if delete_operation:
             data["success"] = "Deletion was successful"
         else:
             data["failure"] = "Deletion failed"
         return Response(data=data)
-    
+
 
 @api_view(["POST"])
 def uploadPropertyImage(request):
-    data=request.data
+    data = request.data
 
     property_id = data["property_id"]
     property = Property.objects.get(id=property_id)
-    property.cover_photo=request.FILES.get("cover_photo")
-    property.photo1=request.FILES.get("photo1")
-    property.photo2=request.FILES.get("photo2")
-    property.photo3=request.FILES.get("photo3")
-    property.photo4=request.FILES.get("photo4")
+    property.cover_photo = request.FILES.get("cover_photo")
+    property.photo1 = request.FILES.get("photo1")
+    property.photo2 = request.FILES.get("photo2")
+    property.photo3 = request.FILES.get("photo3")
+    property.photo4 = request.FILES.get("photo4")
     property.save()
     return Response("Image(s) uploaded")
 
 
 class PropertySearchAPIView(APIView):
-    permission_classes=[permissions.AllowAny]
-    serializer_class=PropertyCreateSerializer
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PropertyCreateSerializer
 
     def post(self, request):
-        queryset=Property.objects.filter(published_status=True)
-        data=self.request.data
+        queryset = Property.objects.filter(published_status=True)
+        data = self.request.data
 
-        advert_type=data["advert_type"]
-        queryset=queryset.filter(advert_type__iexact=advert_type)
+        advert_type = data["advert_type"]
+        queryset = queryset.filter(advert_type__iexact=advert_type)
 
-        property_type=data["property_type"]
-        queryset=queryset.filter(property_type__iexact=property_type)
+        property_type = data["property_type"]
+        queryset = queryset.filter(property_type__iexact=property_type)
 
-        price=data["price"]
+        price = data["price"]
         if price == "$0+":
-            price=0
+            price = 0
         elif price == "$50,000+":
             price = 50000
         elif price == "$100,000+":
@@ -231,7 +239,7 @@ class PropertySearchAPIView(APIView):
 
         queryset = queryset.filter(bathrooms__gte=bathrooms)
 
-        catch_phrase=data["catch_phrase"]
+        catch_phrase = data["catch_phrase"]
         queryset = queryset.filter(description__icontains=catch_phrase)
 
         serializer = PropertySerializer(queryset, many=True)

@@ -11,7 +11,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source="user.last_name")
     email = serializers.EmailField(source="user.email")
     full_name = serializers.SerializerMethodField(read_only=True)
-    country = CountryField(name_only= True)
+    country = CountryField(name_only=True)
     reviews = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -19,8 +19,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "username",
             "first_name",
-            "last_name", 
-            "full_name", 
+            "last_name",
+            "full_name",
             "email",
             "id",
             "phone_number",
@@ -35,7 +35,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "is_agent",
             "rating",
             "num_reviews",
-            "reviews"
+            "reviews",
         ]
 
     def get_full_name(self, obj):
@@ -49,20 +49,20 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         serializer = RatingSerializer(reviews, many=True)
         return serializer.data
-    
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.top_agent:
             representation["top_agent"] = True
         return representation
-    
+
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
-    country = CountryField(name_only = True)
+    country = CountryField(name_only=True)
 
     class Meta:
         model = Profile
-        fields=[
+        fields = [
             "phone_number",
             "profile_photo",
             "about_me",
