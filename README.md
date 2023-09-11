@@ -9,6 +9,6 @@
 
 
 #### To start up, type
-#### make build
+#### -- make build
 #### To stop docker, type
-#### make down
+#### -- make down
